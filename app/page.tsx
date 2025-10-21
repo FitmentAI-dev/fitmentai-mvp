@@ -2,7 +2,8 @@
 export default function Home() {
   return (
     <main className="min-h-screen">
-      {/* your landing page JSX here */}
+      {/* Landing page JSX */}
+      <h1>FitmentAI</h1>
     </main>
   );
 }
