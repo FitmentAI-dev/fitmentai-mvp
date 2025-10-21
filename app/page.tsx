@@ -1,4 +1,3 @@
-// app/page.tsx
 export default function Home() {
   return (
     <main
@@ -14,9 +13,9 @@ export default function Home() {
       }}
     >
       <div>
-        <h1 style={{ fontSize: 48, margin: 0 }}>🚀 FitmentAI</h1>
+        <h1 style={{ fontSize: 48, margin: 0 }}>?? FitmentAI</h1>
         <p style={{ fontSize: 18, opacity: 0.85 }}>
-          Smarter wheel & tire fitment — powered by AI.
+          Smarter wheel & tire fitment � powered by AI.
         </p>
       </div>
     </main>

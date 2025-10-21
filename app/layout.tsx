@@ -1,7 +1,6 @@
-// app/layout.tsx
 export const metadata = {
   title: "FitmentAI",
-  description: "Smarter wheel and tire fitment â€” powered by AI",
+  description: "Smarter wheel and tire fitment — powered by AI",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
