@@ -1,18 +1,13 @@
-export default function Home() {
+// app/layout.tsx
+export const metadata = {
+  title: "FitmentAI",
+  description: "Smarter wheel and tire fitment — powered by AI",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <main style={{
-      minHeight: "100vh",
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center",
-      alignItems: "center",
-      fontFamily: "system-ui, sans-serif",
-      textAlign: "center"
-    }}>
-      <h1 style={{ fontSize: "3rem" }}>🚀 FitmentAI</h1>
-      <p style={{ fontSize: "1.25rem" }}>
-        Smarter wheel & tire fitment — powered by AI.
-      </p>
-    </main>
+    <html lang="en">
+      <body style={{ margin: 0 }}>{children}</body>
+    </html>
   );
 }

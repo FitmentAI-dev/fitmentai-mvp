@@ -1,14 +1,24 @@
-export const metadata = {
-  title: "FitmentAI",
-  description: "Smarter wheel and tire fitment — powered by AI",
-};
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+// app/page.tsx
+export default function Home() {
   return (
-    <html lang="en">
-      <body style={{ margin: 0, background: "#0a0a0a", color: "#fff" }}>
-        {children}
-      </body>
-    </html>
+    <main
+      style={{
+        minHeight: "100vh",
+        display: "grid",
+        placeItems: "center",
+        fontFamily: "system-ui, sans-serif",
+        background: "#0a0a0a",
+        color: "#fff",
+        padding: "2rem",
+        textAlign: "center",
+      }}
+    >
+      <div>
+        <h1 style={{ fontSize: 48, margin: 0 }}>🚀 FitmentAI</h1>
+        <p style={{ fontSize: 18, opacity: 0.85 }}>
+          Smarter wheel & tire fitment — powered by AI.
+        </p>
+      </div>
+    </main>
   );
 }
