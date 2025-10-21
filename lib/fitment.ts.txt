@@ -1,0 +1,116 @@
+// lib/fitment.ts
+export type Input = {
+  year: number;
+  trim: "992 Carrera" | "992 Carrera S" | "992 GTS" | "992 Turbo" | "992 GT3";
+  partType: "wheels";
+  frontWidthJ: number;
+  rearWidthJ: number;
+  frontET: number;
+  rearET: number;
+  frontTire: string;
+  rearTire: string;
+  brakes: "Steel" | "PCCB";
+};
+
+export type ScoreResult = {
+  score: number;
+  notes: string[];
+  risks: string[];
+};
+
+const SAFE = {
+  boltPattern: "5x130",
+  centerBore: 71.6,
+  frontWidthRange: [8.5, 9.5] as const,
+  rearWidthRange: [11, 12] as const,
+  frontETRange: [45, 55] as const,
+  rearETRange: [60, 70] as const,
+  maxTireOdDriftPct: 3
+};
+
+export function parseTireOD(mmString: string) {
+  const m = mmString.match(/^(\d{3})\/(\d{2})R(\d{2})$/i);
+  if (!m) return null;
+  const [_, width, aspect, rim] = m.map(Number);
+  const sidewall = (width * (aspect / 100)) * 2;
+  const rimMM = rim * 25.4;
+  return sidewall + rimMM;
+}
+
+function pctDiff(a: number, b: number) {
+  return Math.abs((a - b) / b) * 100;
+}
+
+const REF = {
+  frontOD: 686,
+  rearOD: 704
+};
+
+export function scoreWheels(input: Input): ScoreResult {
+  let score = 100;
+  const notes: string[] = [];
+  const risks: string[] = [];
+
+  const [fwMin, fwMax] = SAFE.frontWidthRange;
+  const [rwMin, rwMax] = SAFE.rearWidthRange;
+
+  if (input.frontWidthJ < fwMin || input.frontWidthJ > fwMax) {
+    score -= 25;
+    notes.push(`Front width ${input.frontWidthJ}J outside ${fwMin}-${fwMax}J safe range.`);
+  } else {
+    notes.push(`Front width ${input.frontWidthJ}J within safe range.`);
+  }
+
+  if (input.rearWidthJ < rwMin || input.rearWidthJ > rwMax) {
+    score -= 25;
+    notes.push(`Rear width ${input.rearWidthJ}J outside ${rwMin}-${rwMax}J safe range.`);
+  } else {
+    notes.push(`Rear width ${input.rearWidthJ}J within safe range.`);
+  }
+
+  const [fetMin, fetMax] = SAFE.frontETRange;
+  const [retMin, retMax] = SAFE.rearETRange;
+
+  if (input.frontET < fetMin || input.frontET > fetMax) {
+    const drift = Math.ceil(Math.abs((input.frontET < fetMin ? fetMin - input.frontET : input.frontET - fetMax)) / 5);
+    score -= drift * 10;
+    notes.push(`Front offset ET${input.frontET} outside ET${fetMin}-${fetMax}.`);
+  } else {
+    notes.push(`Front offset ET${input.frontET} within OEM-safe range.`);
+  }
+
+  if (input.rearET < retMin || input.rearET > retMax) {
+    const drift = Math.ceil(Math.abs((input.rearET < retMin ? retMin - input.rearET : input.rearET - retMax)) / 5);
+    score -= drift * 10;
+    notes.push(`Rear offset ET${input.rearET} outside ET${retMin}-${retMax}.`);
+  } else {
+    notes.push(`Rear offset ET${input.rearET} within OEM-safe range.`);
+  }
+
+  const fOD = parseTireOD(input.frontTire);
+  const rOD = parseTireOD(input.rearTire);
+  if (fOD) {
+    const drift = pctDiff(fOD, REF.frontOD);
+    if (drift > SAFE.maxTireOdDriftPct) {
+      score -= 20; risks.push(`Front tire OD drift ${drift.toFixed(1)}% (> ${SAFE.maxTireOdDriftPct}%).`);
+    } else {
+      notes.push(`Front tire OD drift ${drift.toFixed(1)}% within tolerance.`);
+    }
+  }
+  if (rOD) {
+    const drift = pctDiff(rOD, REF.rearOD);
+    if (drift > SAFE.maxTireOdDriftPct) {
+      score -= 20; risks.push(`Rear tire OD drift ${drift.toFixed(1)}% (> ${SAFE.maxTireOdDriftPct}%).`);
+    } else {
+      notes.push(`Rear tire OD drift ${drift.toFixed(1)}% within tolerance.`);
+    }
+  }
+
+  if (input.brakes === "PCCB") {
+    score -= 10;
+    risks.push("PCCB clearance risk: ensure inner barrel + caliper clearance.");
+  }
+
+  score = Math.max(0, Math.min(100, score));
+  return { score, notes, risks };
+}

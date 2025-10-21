@@ -1,0 +1,41 @@
+// app/api/score/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { scoreWheels, type Input } from "@/lib/fitment";
+
+const Schema = z.object({
+  year: z.number().int().min(2019).max(2026),
+  trim: z.enum(["992 Carrera","992 Carrera S","992 GTS","992 Turbo","992 GT3"]),
+  partType: z.literal("wheels"),
+  frontWidthJ: z.number(),
+  rearWidthJ: z.number(),
+  frontET: z.number(),
+  rearET: z.number(),
+  frontTire: z.string(),
+  rearTire: z.string(),
+  brakes: z.enum(["Steel","PCCB"]),
+  email: z.string().email().optional()
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    const json = await req.json();
+    const data = Schema.parse(json) as Input & { email?: string };
+    const result = scoreWheels(data);
+
+    return NextResponse.json({
+      score: result.score,
+      notes: result.notes,
+      risks: result.risks,
+      rationale: buildFallbackReason(result)
+    });
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message }, { status: 400 });
+  }
+}
+
+function buildFallbackReason(r: {score:number;notes:string[];risks:string[]}) {
+  const notes = r.notes.slice(0, 2).join(" ");
+  const risk = r.risks[0] ? ` Risk: ${r.risks[0]}.` : "";
+  return `Confidence: ${r.score}.\nReason: ${notes}.${risk}`;
+}
